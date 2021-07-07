@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: mysql-initdb-config
-  namespace: dev
+  namespace: test
 data:
   initdb.sql: |
     CREATE USER 'root'@'*' IDENTIFIED BY 'root';

@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: myapp-deploy
-  namespace: dev
+  namespace: prod
   labels:
     app: myapp
 spec:
@@ -19,7 +19,7 @@ spec:
       imagePullSecrets:
       - name: secret-key
       containers:
-      - name: myapp-flask-dev
+      - name: myapp-flask-prod
         image: urilaran/myapp-flask:latest
         imagePullPolicy: Always 
         ports:

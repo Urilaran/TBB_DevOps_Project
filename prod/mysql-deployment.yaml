@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: mydb
-  namespace: dev
+  namespace: prod
   labels:
     app: mydb
 spec:
@@ -21,7 +21,7 @@ spec:
       imagePullSecrets:
       - name: secret-key
       containers:
-      - name: mysql-dev
+      - name: mysql-prod
         image: mysql
         imagePullPolicy: Always
         env:
@@ -44,12 +44,12 @@ spec:
           periodSeconds: 10
           timeoutSeconds: 5
         volumeMounts:
-        - name: mysql-pv-volume-dev
+        - name: mysql-pv-volume-prod
           mountPath: /var/lib/mysql
         - name: mysql-initdb
           mountPath: /docker-entrypoint-initdb.d
       volumes:
-      - name: mysql-pv-volume-dev
+      - name: mysql-pv-volume-prod
         persistentVolumeClaim:
           claimName: mysql-pv-claim
       - name: mysql-initdb
