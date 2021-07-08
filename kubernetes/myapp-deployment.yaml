@@ -3,7 +3,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: myapp-deploy
-  namespace: dev
   labels:
     app: myapp
 spec:
@@ -19,7 +18,7 @@ spec:
       imagePullSecrets:
       - name: secret-key
       containers:
-      - name: myapp-flask-dev
+      - name: myapp-flask
         image: urilaran/myapp-flask:v$DOCKER_BUILD_NUMBER
         imagePullPolicy: Always 
         ports:
@@ -32,9 +31,9 @@ spec:
           httpGet:
             path: /
             port: 5001            
-          initialDelaySeconds: 40
-          periodSeconds: 30
-          timeoutSeconds: 20
+          initialDelaySeconds: 30
+          periodSeconds: 20
+          timeoutSeconds: 15
         env:
         - name: MYSQL_USERNAME
           value: "root"
