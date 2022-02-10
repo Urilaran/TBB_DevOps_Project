@@ -1,0 +1,76 @@
+node {
+    stage ("git clone"){ 
+     git credentialsId: "GITHUB", url : "https://github.com/Urilaran/TBB_DevOps_Project.git"
+    }
+    
+    stage ("docker build") {
+      sh 'docker build -t urilaran/myapp-flask:v$v${BUILD_NUMBER} .'    
+    }
+    
+    stage ("docker login") {
+      withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'DOCKERHUB', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]){
+      sh 'docker login -u $USERNAME -p $PASSWORD'
+        }
+    }
+    
+    stage ("docker push") {
+      sh 'docker push urilaran/myapp-flask:v$v${BUILD_NUMBER}'
+    }
+    
+    stage ("kubernetes dev deployment"){
+        script {
+            env.DOCKER_BUILD_NUMBER="${BUILD_NUMBER}"
+        }
+        sh 'echo ${DOCKER_BUILD_NUMBER}'
+        sh 'kubectl apply -f ./dev/mysql-pv.yaml'
+        sh 'kubectl apply -f ./dev/mysql-pvc.yaml'
+        sh 'kubectl apply -f ./dev/mysql-service.yaml'
+        sh 'kubectl apply -f ./dev/mysql-initdb-config.yaml'
+        sh 'kubectl apply -f ./dev/mysql-secret.yaml'
+        sh 'kubectl apply -f ./dev/mysql-deployment.yaml'
+        sh 'kubectl apply -f ./dev/myapp-service.yaml'
+        sh 'envsubst < ./dev/myapp-deployment.yaml | kubectl apply -f -'
+        
+    }
+    stage ("kubernetes test deployment"){
+            def deployment= input(message: 'TEST DEPLOYMENT APPROVAL?', ok:'ok', parameters:[booleanParam(defaultValue:true,description:'Description',name:'yes')])
+            if (deployment == true){
+                script {
+                    env.DOCKER_BUILD_NUMBER="${BUILD_NUMBER}"
+        }
+                 sh 'echo ${DOCKER_BUILD_NUMBER}'
+                 sh 'kubectl apply -f ./test/mysql-pv.yaml'
+                 sh 'kubectl apply -f ./test/mysql-pvc.yaml'
+                 sh 'kubectl apply -f ./test/mysql-service.yaml'
+                 sh 'kubectl apply -f ./test/mysql-initdb-config.yaml'
+                 sh 'kubectl apply -f ./test/mysql-secret.yaml'
+                 sh 'kubectl apply -f ./test/mysql-deployment.yaml'
+                 sh 'kubectl apply -f ./test/myapp-service.yaml'
+                 sh 'envsubst < ./test/myapp-deployment.yaml | kubectl apply -f -'
+            }
+            else{
+                 echo "Test Deployement Rejected"
+            }
+    }
+    stage ("kubernetes prod deployment"){
+            def deployment= input(message: 'PROD DEPLOY APPROVAL?', ok:'ok', parameters:[booleanParam(defaultValue:true,description:'Description',name:'yes')])
+            if (deployment == true){
+                 script {
+                 env.DOCKER_BUILD_NUMBER="${BUILD_NUMBER}"
+        }
+                 sh 'echo ${DOCKER_BUILD_NUMBER}'
+                 sh 'kubectl apply -f ./prod/mysql-pv.yaml'
+                 sh 'kubectl apply -f ./prod/mysql-pvc.yaml'
+                 sh 'kubectl apply -f ./prod/mysql-service.yaml'
+                 sh 'kubectl apply -f ./prod/mysql-initdb-config.yaml'
+                 sh 'kubectl apply -f ./prod/mysql-secret.yaml'
+                 sh 'kubectl apply -f ./prod/mysql-deployment.yaml'
+        sh 'kubectl apply -f ./prod/myapp-service.yaml'
+        sh 'envsubst < ./prod/myapp-deployment.yaml | kubectl apply -f -'
+              }
+    
+            else{
+                 echo " Prod Deployement Rejected"
+            }
+    }
+}

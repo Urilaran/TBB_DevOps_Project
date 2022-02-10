@@ -20,7 +20,7 @@ spec:
       - name: secret-key
       containers:
       - name: myapp-flask-dev
-        image: urilaran/myapp-flask:latest
+        image: urilaran/myapp-flask:v$DOCKER_BUILD_NUMBER
         imagePullPolicy: Always 
         ports:
         - containerPort: 5001
@@ -32,9 +32,9 @@ spec:
           httpGet:
             path: /
             port: 5001            
-          initialDelaySeconds: 30
-          periodSeconds: 20
-          timeoutSeconds: 15
+          initialDelaySeconds: 40
+          periodSeconds: 30
+          timeoutSeconds: 20
         env:
         - name: MYSQL_USERNAME
           value: "root"
